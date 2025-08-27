@@ -10,21 +10,31 @@ type DoNotLeak
 type Pid
 
 @external(erlang, "erlang", "unique_integer")
+@external(javascript, "./global_value_test_ffi.mjs", "unique_int")
 fn unique_int() -> Int
 
 @external(erlang, "timer", "sleep")
+@external(javascript, "./global_value_test_ffi.mjs", "sleep")
 fn sleep(ms: Int) -> DoNotLeak
 
+@external(erlang, "global_value_test_ffi", "yield")
+@external(javascript, "./global_value_test_ffi.mjs", "yield_")
+fn yield(ms: Int, next: fn() -> t) -> Nil
+
 @external(erlang, "erlang", "spawn_link")
+@external(javascript, "./global_value_test_ffi.mjs", "spawn")
 fn spawn_link(f: fn() -> anything) -> Pid
 
 @external(erlang, "erlang", "send")
+@external(javascript, "./global_value_test_ffi.mjs", "send")
 fn send(pid: Pid, message: Int) -> DoNotLeak
 
 @external(erlang, "erlang", "self")
+@external(javascript, "./global_value_test_ffi.mjs", "self")
 fn self() -> Pid
 
 @external(erlang, "global_value_test_ffi", "rec")
+@external(javascript, "./global_value_test_ffi.mjs", "rec")
 fn receive() -> Int
 
 fn global1() -> Int {
@@ -63,6 +73,8 @@ pub fn concurrent_initialisation_test() {
   spawn_link(fn() { send(parent, slow_global()) })
   spawn_link(fn() { send(parent, slow_global()) })
   spawn_link(fn() { send(parent, slow_global()) })
+
+  use <- yield(300)
 
   // They all got the same unique int, so only one of them could have
   // succeeded.
